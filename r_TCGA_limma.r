@@ -6,16 +6,22 @@ library("RColorBrewer")
 library("dplyr")
 
 cohort <- "KIRC"
+fdate <- "2016-01-28"
+bfolder <- sprintf("%s/%s/limma", cohort, fdate)
 
 # read RNA file 
-rna <- read.table(file="KIRC/2016-01-28/rnaseq/KIRC.Merge_rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.Level_3/KIRC.rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.data.txt", header=T,row.names=1,sep="\t")
+rna <- read.table(file=sprintf("%s/%s/data/rnaseq/KIRC.Merge_rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.Level_3/KIRC.rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.data.txt", cohort, fdate), header=T,row.names=1,sep="\t")
 # and take off first row cause we don’t need it
 rna <- rna[-1,]
 # and read the Clinical file, in this case I transposed it to keep the clinical feature title as column name
-clinical <- t(read.table(file="KIRC/2016-01-28/clinical/KIRC.Merge_Clinical.Level_1/KIRC.merged_only_clinical_clin_format.txt", header=T, row.names=1, sep="\t"))
+clinical <- t(read.table(file=sprintf("%s/%s/data/clinical/KIRC.Merge_Clinical.Level_1/KIRC.merged_only_clinical_clin_format.txt", cohort, fdate), header=T, row.names=1, sep="\t"))
 
 # color
 colfunc <- colorRampPalette(rev(c("darkred", "darkorange", "darkgreen", "darkblue")))
+
+if(!dir.exists(bfolder)) { 
+	dir.create(bfolder)
+}
 
 # first I remove genes whose expression is == 0 in more than 50% of the samples:
 rem <- function(x){
@@ -88,10 +94,10 @@ genelist <- ""
 for(i in 1:length(tttreat$Symbols)){
 	genelist <- paste(genelist, tttreat$Symbols[i], sep="\n")
 }
-write.table(genelist, file="KIRC/x_tables/genelist_topTreat.txt", quote=F, col.names=F, row.names=F)
+write.table(genelist, file=sprintf("%s/genelist_topTreat.txt", bfolder), quote=F, col.names=F, row.names=F)
 
 # plotting
-filename <- "KIRC/x_plots/prad_top_genes.pdf"
+filename <- sprintf("%s/prad_top_genes.pdf", bfolder)
 cairo_pdf(filename, width=8.27, height=11.69)
 par(mfrow=c(3,1), cex.lab=1.5, mar=c(7, 5, 4, 2) + 0.1)	# mar: c(bottom, left, top, right)
 barplot(ttlog$logFC, beside=T, main="KIRC most differentially expressed Genes ordered by log2(fold-change)", names.arg=ttlog$Symbols, col=ifelse(ttlog$logFC>0,"darkgreen","darkred"), las=3, cex.names = 1.2, cex.main = 1.2, axis.lty = 1, axes=T, ylab="logFC", ylim = c(-10,10))

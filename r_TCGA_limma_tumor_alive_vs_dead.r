@@ -6,16 +6,23 @@ library("RColorBrewer")
 library("dplyr")
 
 cohort <- "KIRC"
+fdate <- "2016-01-28"
+bfolder <- sprintf("%s/%s/d_vs_a", cohort, fdate)
 
 # read RNA file 
-rna <- read.table(file="KIRC/2016-01-28/rnaseq/KIRC.Merge_rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.Level_3/KIRC.rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.data.txt", header=T,row.names=1,sep="\t")
+rna <- read.table(file=sprintf("%s/%s/data/rnaseq/KIRC.Merge_rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.Level_3/KIRC.rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.data.txt", cohort, fdate), header=T,row.names=1,sep="\t")
 # and take off first row cause we don’t need it
 rna <- rna[-1,]
 # and read the Clinical file, in this case I transposed it to keep the clinical feature title as column name
-clinical <- t(read.table(file="KIRC/2016-01-28/clinical/KIRC.Merge_Clinical.Level_1/KIRC.merged_only_clinical_clin_format.txt", header=T, row.names=1, sep="\t"))
+clinical <- t(read.table(file=sprintf("%s/%s/data/clinical/KIRC.Merge_Clinical.Level_1/KIRC.merged_only_clinical_clin_format.txt", cohort, fdate), header=T, row.names=1, sep="\t"))
 
 # color
 colfunc <- colorRampPalette(rev(c("darkred", "darkorange", "darkgreen", "darkblue")))
+
+# folder stuff
+if(!dir.exists(bfolder)) { 
+	dir.create(bfolder)
+}
 
 # first I remove genes whose expression is == 0 in more than 50% of the samples:
 rem <- function(x){

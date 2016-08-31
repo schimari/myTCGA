@@ -7,16 +7,22 @@ library("survminer")
 library("RColorBrewer")
 
 cohort <- "KIRC"
+fdate <- "2016-01-28"
 
 # read RNA file 
-rna <- read.table(file="KIRC/2016-01-28/rnaseq/KIRC.Merge_rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.Level_3/KIRC.rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.data.txt", header=T,row.names=1,sep="\t")
+rna <- read.table(file=sprintf("%s/%s/rnaseq/KIRC.Merge_rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.Level_3/KIRC.rnaseqv2__illuminahiseq_rnaseqv2__unc_edu__Level_3__RSEM_genes_normalized__data.data.txt", cohort, fdate), header=T,row.names=1,sep="\t")
 # and take off first row cause we don’t need it
 rna <- rna[-1,]
 # and read the Clinical file, in this case I transposed it to keep the clinical feature title as column name
-clinical <- t(read.table(file="KIRC/2016-01-28/clinical/KIRC.Merge_Clinical.Level_1/KIRC.merged_only_clinical_clin_format.txt", header=T, row.names=1, sep="\t"))
+clinical <- t(read.table(file=sprintf("%s/%s/clinical/KIRC.Merge_Clinical.Level_1/KIRC.merged_only_clinical_clin_format.txt", cohort, fdate), header=T, row.names=1, sep="\t"))
 
 # color
 colfunc <- colorRampPalette(rev(c("darkred", "darkorange", "darkgreen", "darkblue")))
+
+# folder stuff
+if(!dir.exists(sprintf("%s/%s/survival_plots", cohort, fdate))) { 
+	dir.create(sprintf("%s/%s/survival_plots", cohort, fdate))
+}
 
 # first I remove genes whose expression is == 0 in more than 50% of the samples:
 rem <- function(x){
@@ -176,7 +182,7 @@ s <- survfit(Surv(as.numeric(as.character((all_clin$new_death/365)*12))[ind_clin
 #pv <- ifelse(is.na(s1),next,(round(1 - pchisq(s1$chisq, length(s1$n) - 1),6)))[[1]]
 
 # survminer plot
-cairo_pdf(sprintf("plots/logfc_%s_%s.pdf", geneint, cohort), width=11.69, height=8.27)
+cairo_pdf(sprintf("%s/%s/survival_plots/%s_%s_logFC.pdf", cohort, fdate, geneint, cohort), width=11.69, height=8.27)
 ggsurvplot(s,  size = 0.6,  # change line size
 	#main="",
 	palette = colfunc(nrow(s)), # custom color palettes
